@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome $HOME!</title>
+    <link rel="stylesheet" href="jetbrainsmononerdfontmono-regular_ttf.css">
+    <style>
+        :root {
+            --base: #1e1e2e;
+            --crust: #11111b;
+            --pink: #f38ba8;
+            --lavender: #b4befe;
+            --green: #a6e3a1;
+            --sky: #89dceb;
+        }
+        body {
+            background-color: var(--base);
+            color: var(--pink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            font-family: 'jetbrainsmononerdfontmono-regular';
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            width: 90%;
+            max-width: 900px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            width: 100%;
+        }
+
+        /* ---------- boxed TUI panes ---------- */
+        .box {
+            position: relative;
+            border: 2px solid var(--lavender);
+            border-radius: 4px;
+            padding: 18px 14px 12px;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .box-title,
+        .box-action {
+            position: absolute;
+            top: 0;
+            transform: translateY(-50%);
+            background: var(--base);
+            padding: 0 6px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .box-title {
+            left: 12px;
+            color: var(--pink);
+            font-weight: bold;
+            max-width: calc(100% - 70px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .box-action {
+            right: 12px;
+        }
+        button.tui {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            color: var(--lavender);
+            cursor: pointer;
+        }
+        button.tui:hover { color: var(--pink); }
+        button.tui.danger { color: var(--pink); }
+        button.tui.danger:hover { color: var(--green); }
+
+        /* ---------- image ---------- */
+        /* The image fills the box; the box height follows the right column. */
+        .image {
+            display: flex;
+            flex-direction: column;
+        }
+        .img-wrap {
+            position: relative;
+            flex: 1;
+            min-height: 200px;
+        }
+        .img-wrap img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* ---------- header ---------- */
+        .header {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+        .time {
+            font-size: 1rem;
+            color: var(--lavender);
+        }
+
+        /* ---------- search ---------- */
+        .terminal {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: text;
+        }
+        .terminal .prompt {
+            color: var(--green);
+            user-select: none;
+        }
+        .terminal input {
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+            font: inherit;
+            color: var(--green);
+            caret-color: var(--green);
+            flex: 1;
+            min-width: 0;
+        }
+        .terminal input::selection {
+            background: var(--lavender);
+            color: var(--base);
+        }
+
+        /* ---------- link lists ---------- */
+        /* The script sets --cols: number of boxes, max 4 (wide) or 2 (phone). */
+        .links {
+            --cols: 4;
+            display: grid;
+            grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+            gap: 26px 16px;
+            padding-top: 8px;
+        }
+        .links a {
+            color: var(--sky);
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .links a:hover { color: var(--green); }
+        .link-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .link-row a { flex: 1; min-width: 0; }
+        .empty {
+            color: var(--lavender);
+            opacity: 0.6;
+            margin: 5px 0;
+        }
+
+        /* ---------- edit forms ---------- */
+        .add-form {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--lavender);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .add-form input {
+            background: var(--crust);
+            border: 1px solid transparent;
+            border-radius: 2px;
+            outline: none;
+            font: inherit;
+            font-size: 0.9rem;
+            color: var(--green);
+            padding: 3px 6px;
+            min-width: 0;
+        }
+        .add-form input:focus { border-color: var(--lavender); }
+        .add-form input::placeholder { color: var(--lavender); opacity: 0.5; }
+        .add-form .error-msg {
+            color: var(--pink);
+            font-size: 0.8rem;
+            min-height: 1em;
+        }
+        .box.new-list { border-style: dashed; }
+
+        /* inline editors for existing lists and links */
+        .edit-form {
+            margin: 5px 0;
+            padding: 6px;
+            border: 1px dashed var(--lavender);
+            border-radius: 2px;
+        }
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .box-title input {
+            background: var(--base);
+            border: none;
+            border-bottom: 1px dashed var(--lavender);
+            outline: none;
+            padding: 0;
+            font: inherit;
+            color: var(--pink);
+            width: 14ch;
+        }
+        .box-action {
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+                align-items: stretch;
+                max-width: 1200px;
+            }
+            .image { flex: 1; }
+            .content { flex: 3; }
+        }
+        @media (max-width: 768px) {
+            .image { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box image">
+            <span class="box-title">~/img</span>
+            <div class="img-wrap"><img src="sunny_day.gif" alt="Placeholder"></div>
+        </div>
+
+        <div class="content">
+            <div class="box">
+                <span class="box-title">~</span>
+                <span class="box-action">
+                    <button class="tui" id="edit-toggle" title="Add or delete lists and links">[ edit ]</button>
+                </span>
+                <div class="header">Welcome $HOME!</div>
+                <div class="time" id="datetime">Sunday, 19:38:17 | 08/09/24</div>
+            </div>
+
+            <div class="box">
+                <span class="box-title">search</span>
+                <div class="terminal" onclick="document.getElementById('search').focus()">
+                    <span class="prompt">$</span>
+                    <input type="text" id="search" onkeydown="search(event)" autocomplete="off" spellcheck="false" autofocus />
+                </div>
+            </div>
+
+            <div class="links" id="links"></div>
+        </div>
+    </div>
+
+<script>
+/* ---------------- date and time (unchanged) ---------------- */
+function updateDateTime() {
+    const now = new Date();
+    const optionsDate = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+    const formattedDate = now.toLocaleDateString('en-US', optionsDate);
+    const optionsTime = { hour: 'numeric', minute: '2-digit', hour12: true };
+    const formattedTime = now.toLocaleTimeString('en-US', optionsTime);
+    // Formatting to match "Sunday, 7:35PM | August 8, 2025"
+    const [dayOfWeek, month, day, year] = formattedDate.split(' ');
+    const formattedOutput = `${dayOfWeek} ${formattedTime} | ${month} ${day.replace(',', '')}, ${year}`;
+    document.getElementById('datetime').textContent = formattedOutput;
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
+/* ---------------- search (unchanged) ---------------- */
+function search(event) {
+    if (event.key === "Enter") {
+        let query = document.getElementById("search").value.trim();
+        if (query) {
+            window.open(`https://www.duckduckgo.com/?q=${encodeURIComponent(query)}`, "_blank");
+        }
+    }
+}
+
+/* ---------------- editable link lists ---------------- */
+const STORE_KEY = 'startpage-link-lists';
+
+const DEFAULT_LISTS = [
+    { title: '~/general ✎', links: [
+        { name: 'Google',   url: 'https://www.google.com/' },
+        { name: 'YouTube',  url: 'https://www.youtube.com/' },
+        { name: 'Calendar', url: 'https://calendar.google.com/calendar/u/0' },
+        { name: 'Settings', url: 'about:preferences' }
+    ]},
+    { title: '~/academics 📎', links: [
+        { name: 'Docs',      url: 'https://docs.google.com/document/u/1/?tgif=d' },
+        { name: 'Overleaf',  url: 'https://www.overleaf.com/project' },
+        { name: 'MatLab',    url: 'https://matlab.mathworks.com/' },
+        { name: 'Gemini',    url: 'https://gemini.google.com/app?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all' },
+        { name: 'Classroom', url: 'https://classroom.google.com/u/1/' }
+    ]},
+    { title: '~/socials ', links: [
+        { name: 'Reddit',    url: 'https://www.reddit.com/' },
+        { name: 'WhatsApp',  url: 'https://web.whatsapp.com/' },
+        { name: 'Instagram', url: 'https://www.instagram.com/' },
+        { name: 'Telegram',  url: 'https://web.telegram.org/k/' }
+    ]}
+];
+
+let lists = loadLists();
+let editMode = false;
+
+function loadLists() {
+    try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+        }
+    } catch (e) { /* storage not available: use defaults */ }
+    return JSON.parse(JSON.stringify(DEFAULT_LISTS));
+}
+
+function saveLists() {
+    try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(lists));
+    } catch (e) {
+        console.warn('Could not save link lists:', e);
+    }
+}
+
+/* Add "https://" when the user types a bare address such as "github.com". */
+function normalizeUrl(url) {
+    url = url.trim();
+    if (!url) return '';
+    if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
+    return 'https://' + url.replace(/^\/+/, '');
+}
+
+function el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(props)) {
+        if (key === 'class') node.className = value;
+        else if (key === 'text') node.textContent = value;
+        else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+        else node.setAttribute(key, value);
+    }
+    for (const child of children) node.appendChild(child);
+    return node;
+}
+
+function renderLists(focusSelector) {
+    const container = document.getElementById('links');
+    container.innerHTML = '';
+
+    lists.forEach((list, listIndex) => {
+        const box = el('div', { class: 'box', 'data-list': listIndex });
+        const titleEditing = editMode && editing && editing.type === 'list' && editing.list === listIndex;
+
+        if (titleEditing) {
+            box.appendChild(buildEditTitle(listIndex));
+        } else {
+            box.appendChild(el('span', { class: 'box-title', text: list.title, title: list.title }));
+            if (editMode) {
+                box.appendChild(el('span', { class: 'box-action' }, [
+                    el('button', {
+                        class: 'tui', text: '[✎]', title: 'Rename this list',
+                        onclick: () => startEdit({ type: 'list', list: listIndex }, `[data-list="${listIndex}"] .edit-title`)
+                    }),
+                    el('button', {
+                        class: 'tui danger', text: '[x]', title: 'Delete this list',
+                        onclick: () => deleteList(listIndex)
+                    })
+                ]));
+            }
+        }
+
+        if (list.links.length === 0) {
+            box.appendChild(el('div', { class: 'empty', text: '(empty)' }));
+        }
+
+        list.links.forEach((link, linkIndex) => {
+            const linkEditing = editMode && editing && editing.type === 'link'
+                && editing.list === listIndex && editing.link === linkIndex;
+            if (linkEditing) {
+                box.appendChild(buildEditLinkForm(listIndex, linkIndex));
+                return;
+            }
+            const anchor = el('a', { href: link.url, target: '_blank', text: link.name, title: link.url });
+            if (editMode) {
+                box.appendChild(el('div', { class: 'link-row' }, [
+                    anchor,
+                    el('button', {
+                        class: 'tui', text: '✎', title: 'Edit this link',
+                        onclick: () => startEdit({ type: 'link', list: listIndex, link: linkIndex },
+                                                 `[data-list="${listIndex}"] .edit-name`)
+                    }),
+                    el('button', {
+                        class: 'tui danger', text: '×', title: 'Delete this link',
+                        onclick: () => deleteLink(listIndex, linkIndex)
+                    })
+                ]));
+            } else {
+                box.appendChild(anchor);
+            }
+        });
+
+        if (editMode) box.appendChild(buildAddLinkForm(listIndex));
+        container.appendChild(box);
+    });
+
+    if (editMode) container.appendChild(buildNewListBox());
+    updateColumns();
+
+    if (focusSelector) {
+        const target = container.querySelector(focusSelector);
+        if (target) {
+            target.focus();
+            if (target.value) target.select();
+        }
+    }
+}
+
+/* ---------- edit existing lists and links ---------- */
+let editing = null;   // null, {type:'list', list}, or {type:'link', list, link}
+
+function startEdit(target, focusSelector) {
+    editing = target;
+    renderLists(focusSelector);
+}
+
+function cancelEdit() {
+    editing = null;
+    renderLists();
+}
+
+/* Enter saves, Escape cancels; Escape does not also close edit mode. */
+function editorKeys(save) {
+    return (e) => {
+        if (e.key === 'Enter') save();
+        if (e.key === 'Escape') { e.stopPropagation(); cancelEdit(); }
+    };
+}
+
+function buildEditTitle(listIndex) {
+    const input = el('input', { class: 'edit-title', type: 'text', value: lists[listIndex].title });
+    const save = () => {
+        const title = input.value.trim();
+        if (!title) { input.focus(); return; }
+        lists[listIndex].title = title;
+        editing = null;
+        saveLists();
+        renderLists();
+    };
+    input.addEventListener('keydown', editorKeys(save));
+
+    const frag = document.createDocumentFragment();
+    frag.appendChild(el('span', { class: 'box-title' }, [input]));
+    frag.appendChild(el('span', { class: 'box-action' }, [
+        el('button', { class: 'tui', text: '[ok]', title: 'Save', onclick: save }),
+        el('button', { class: 'tui danger', text: '[esc]', title: 'Cancel', onclick: cancelEdit })
+    ]));
+    return frag;
+}
+
+function buildEditLinkForm(listIndex, linkIndex) {
+    const link = lists[listIndex].links[linkIndex];
+    const nameInput = el('input', { class: 'edit-name', type: 'text', value: link.name, placeholder: 'name' });
+    const urlInput  = el('input', { class: 'edit-url',  type: 'text', value: link.url,  placeholder: 'url' });
+    const errorMsg  = el('div', { class: 'error-msg' });
+
+    const save = () => {
+        const name = nameInput.value.trim();
+        const url = normalizeUrl(urlInput.value);
+        if (!name || !url) {
+            errorMsg.textContent = 'name and url are required';
+            return;
+        }
+        lists[listIndex].links[linkIndex] = { name, url };
+        editing = null;
+        saveLists();
+        renderLists();
+    };
+    nameInput.addEventListener('keydown', editorKeys(save));
+    urlInput.addEventListener('keydown', editorKeys(save));
+
+    return el('div', { class: 'add-form edit-form' }, [
+        nameInput,
+        urlInput,
+        el('div', { class: 'form-buttons' }, [
+            el('button', { class: 'tui', text: '[ save ]', onclick: save }),
+            el('button', { class: 'tui danger', text: '[ cancel ]', onclick: cancelEdit })
+        ]),
+        errorMsg
+    ]);
+}
+
+/* Boxes share one row: up to 4 on wide screens, up to 2 on phones. */
+const phoneQuery = window.matchMedia('(max-width: 768px)');
+
+function updateColumns() {
+    const container = document.getElementById('links');
+    const maxCols = phoneQuery.matches ? 2 : 4;
+    const boxCount = Math.max(container.children.length, 1);
+    container.style.setProperty('--cols', Math.min(boxCount, maxCols));
+}
+phoneQuery.addEventListener('change', updateColumns);
+
+function buildAddLinkForm(listIndex) {
+    const nameInput = el('input', { class: 'add-name', type: 'text', placeholder: 'name' });
+    const urlInput  = el('input', { class: 'add-url',  type: 'text', placeholder: 'url' });
+    const errorMsg  = el('div', { class: 'error-msg' });
+
+    const submit = () => {
+        const name = nameInput.value.trim();
+        const url = normalizeUrl(urlInput.value);
+        if (!name || !url) {
+            errorMsg.textContent = 'name and url are required';
+            return;
+        }
+        editing = null;
+        lists[listIndex].links.push({ name, url });
+        saveLists();
+        renderLists(`[data-list="${listIndex}"] .add-name`);
+    };
+    const onKey = (e) => { if (e.key === 'Enter') submit(); };
+    nameInput.addEventListener('keydown', onKey);
+    urlInput.addEventListener('keydown', onKey);
+
+    return el('div', { class: 'add-form' }, [
+        nameInput,
+        urlInput,
+        el('button', { class: 'tui', text: '[ + add link ]', onclick: submit }),
+        errorMsg
+    ]);
+}
+
+function buildNewListBox() {
+    const titleInput = el('input', { class: 'new-title', type: 'text', placeholder: '~/name' });
+    const errorMsg = el('div', { class: 'error-msg' });
+
+    const submit = () => {
+        const title = titleInput.value.trim();
+        if (!title) {
+            errorMsg.textContent = 'a list name is required';
+            return;
+        }
+        editing = null;
+        lists.push({ title, links: [] });
+        saveLists();
+        renderLists(`[data-list="${lists.length - 1}"] .add-name`);
+    };
+    titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+
+    return el('div', { class: 'box new-list' }, [
+        el('span', { class: 'box-title', text: '+ new list' }),
+        el('div', { class: 'add-form', style: 'border-top:none; margin-top:0; padding-top:0;' }, [
+            titleInput,
+            el('button', { class: 'tui', text: '[ + create ]', onclick: submit }),
+            errorMsg
+        ])
+    ]);
+}
+
+function deleteList(listIndex) {
+    const list = lists[listIndex];
+    const count = list.links.length;
+    if (count > 0 && !confirm(`Delete "${list.title.trim()}" and its ${count} link(s)?`)) return;
+    editing = null;
+    lists.splice(listIndex, 1);
+    saveLists();
+    renderLists();
+}
+
+function deleteLink(listIndex, linkIndex) {
+    editing = null;
+    lists[listIndex].links.splice(linkIndex, 1);
+    saveLists();
+    renderLists();
+}
+
+function setEditMode(on) {
+    editMode = on;
+    editing = null;
+    document.getElementById('edit-toggle').textContent = on ? '[ done ]' : '[ edit ]';
+    renderLists();
+}
+
+document.getElementById('edit-toggle').addEventListener('click', () => setEditMode(!editMode));
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editMode) setEditMode(false);
+});
+
+renderLists();
+</script>
+</body>
+</html>
