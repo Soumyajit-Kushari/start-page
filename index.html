@@ -3,30 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://gist.github.com/mtoohey31/f2845552c6617b8bfd0820c14ca3bf86.js"></script>
     <title>Welcome $HOME!</title>
     <style>
-    @font-face {
-        font-family: "JetBrains Mono Nerd Font";
-        font-style: normal;
-        font-weight: 200;
-        src: url(https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/JetBrainsMono/Ligatures/Regular/complete/JetBrains Mono Regular Nerd Font Complete.ttf?raw=true);
-    }
-    @font-face {
-        font-family: "JetBrains Mono Nerd Font";
-        font-style: normal;
-        font-weight: 400;
-        src: url(https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/JetBrainsMono/Ligatures/Regular/complete/JetBrains Mono Regular Nerd Font Complete.ttf?raw=true);
-    }
-    @font-face {
-        font-family: "JetBrains Mono Nerd Font";
-        font-weight: 600;
-        src: url(https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/JetBrainsMono/Ligatures/Regular/complete/JetBrains Mono Regular Nerd Font Complete.ttf?raw=true);
-    }
-    @font-face {
-        font-family: "JetBrains Mono Nerd Font";
-        font-weight: 800;
-        src: url(https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/JetBrainsMono/Ligatures/Regular/complete/JetBrains Mono Regular Nerd Font Complete.ttf?raw=true);
-    }
         :root {
             --base: #1e1e2e;
             --crust: #11111b;
@@ -47,7 +26,7 @@
             text-align: center;
         }
         .container {
-            font-family: 'JetBrains Mono Nerd Font';
+            font-family: 'JetBrains Mono Nerd Font' !important;
             font-weight: 400;
             display: flex;
             flex-direction: column;
@@ -330,8 +309,7 @@ const DEFAULT_LISTS = [
         { name: 'YouTube',  url: 'https://www.youtube.com/' },
         { name: 'Outlook', url: 'https://outlook.office.com/calendar/' },
         { name: 'Todoist',  url: 'https://app.todoist.com/' },
-        { name: 'IISc SAP', url: 'https://sap.iisc.ac.in/' },
-        { name: 'Settings', url: 'about:preferences' }
+        { name: 'IISc SAP', url: 'https://sap.iisc.ac.in/' }
     ]},
     { title: '~/academics 📎', links: [
         { name: 'OneDrive', url: 'https://www.office.com/launch/onedrive' },
@@ -347,8 +325,9 @@ const DEFAULT_LISTS = [
         { name: 'Consensus',      url: 'https://consensus.app/' },
         { name: 'Zotero',         url: 'https://www.zotero.org/mylibrary' }
     ]},
-    { title: '~/relax/coms', links: [
+    { title: '~/relax | coms', links: [
         { name: 'Reddit',     url: 'https://www.reddit.com/' },
+        { name: 'Pink Floyd', url: 'https://www.welovepinkfloyd.com'}
         { name: 'Cyberspace', url: 'https://cyberspace.online/' },
         { name: 'Medium',     url: 'https://medium.com/' },
         { name: 'WhatsApp',   url: 'https://web.whatsapp.com/' },
