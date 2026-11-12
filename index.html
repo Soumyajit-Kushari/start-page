@@ -90,23 +90,16 @@
 
         /* ---------- image ---------- */
         /* The image fills the box; the box height follows the right column. */
-        .image {
-            display: flex;
-            flex-direction: column;
+        .video-box {
+            height: 200px;       /* or any size you want */
+            overflow: hidden;
         }
-        .img-wrap {
-            position: relative;
-            flex: 1;
-            min-height: 200px;
-        }
-        .img-wrap img {
-            position: absolute;
-            inset: 0;
+
+        .bg {
+            display: block;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            display: block;
-            border-radius: 2px;
+            object-fit: contain; /* shows the full video, can leave empty bars */
         }
 
         /* ---------- header ---------- */
